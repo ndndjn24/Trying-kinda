@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en" manifest="cache.manifest">
+<head>
+  <meta charset="UTF-8">
+  <title>FH DECODER - iOS26 OFFLINE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  
+  <!-- AppCache للآيفون المتقدم -->
+  <html manifest="fh.appcache">
+  
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: white;
+      font-family: -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .glass {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 25px;
+      padding: 30px;
+      width: 90%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    
+    .status {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 25px;
+      letter-spacing: 1px;
+    }
+    
+    .online { color: #0f0; }
+    .offline { color: #f00; }
+    
+    h1 {
+      font-weight: 300;
+      letter-spacing: 4px;
+      margin-bottom: 25px;
+      color: rgba(255,255,255,0.9);
+    }
+    
+    input {
+      width: 100%;
+      padding: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 15px;
+      color: white;
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 15px;
+      outline: none;
+    }
+    
+    button {
+      width: 100%;
+      padding: 16px;
+      background: white;
+      color: black;
+      border: none;
+      border-radius: 15px;
+      font-weight: bold;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    
+    button:active {
+      opacity: 0.8;
+    }
+    
+    #output {
+      font-size: 24px;
+      margin: 20px 0;
+      min-height: 35px;
+      word-break: break-all;
+      padding: 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+    }
+    
+    .copy-btn {
+      background: #222;
+      color: #999;
+      display: none;
+    }
+    
+    .footer {
+      font-size: 10px;
+      color: rgba(255,255,255,0.15);
+      margin-top: 25px;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="glass">
+    <div id="status" class="status">● CHECKING...</div>
+    <h1>FH DECODER</h1>
+    
+    <input type="text" id="input" placeholder="WIFI NAME" autocomplete="off">
+    
+    <button onclick="run()">CONVERT</button>
+    
+    <div id="output"></div>
+    
+    <button id="copyBtn" class="copy-btn" onclick="copyText()">COPY</button>
+    
+    <div class="footer">iOS 26.2 OFFLINE MODE</div>
+  </div>
+
+  <script>
+    // الخوارزمية الأساسية
+    const map = {
+      "5":"a","4":"b","3":"c","2":"d","1":"e","0":"f",
+      "g":"z","h":"y","i":"x","j":"w","k":"v","l":"u",
+      "m":"t","n":"s","o":"r","p":"q","q":"p","r":"o",
+      "s":"n","t":"m","u":"l","f":"0",
+      "z":"g","y":"h","x":"i","w":"j","v":"k",
+      "e":"1","d":"2","c":"3","b":"4","a":"5",
+      "9":"6","8":"7","7":"8","6":"9"
+    };
+
+    function run() {
+      const input = document.getElementById('input').value.trim().toLowerCase();
+      const output = document.getElementById('output');
+      const copyBtn = document.getElementById('copyBtn');
+      
+      if (!input) return;
+      
+      let result = "";
+      let text = input;
+      
+      if (text.startsWith("fh_")) {
+        result = "wlan";
+        text = text.substring(3);
+      }
+      
+      for (let char of text) {
+        result += map[char] || char;
+      }
+      
+      output.textContent = result;
+      copyBtn.style.display = 'block';
+      
+      // حفظ في localStorage (يعمل في iOS 26)
+      localStorage.setItem('last_result', result);
+      localStorage.setItem('last_input', input);
+    }
+
+    function copyText() {
+      const text = document.getElementById('output').textContent;
+      const btn = document.getElementById('copyBtn');
+      
+      navigator.clipboard.writeText(text);
+      btn.textContent = "COPIED!";
+      setTimeout(() => btn.textContent = "COPY", 1500);
+    }
+
+    // ===== OFFLINE SOLUTION FOR iOS 26.2 =====
+    
+    // 1. حفظ الصفحة كاملة في localStorage
+    function savePageForOffline() {
+      // تخزين HTML الأساسي
+      const essentialHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>${document.querySelector('style').innerText}</style>
+        </head>
+        <body>
+          <div class="glass">
+            <div class="status">● OFFLINE MODE</div>
+            <h1>FH DECODER</h1>
+            <input type="text" placeholder="WIFI NAME">
+            <button>CONVERT</button>
+            <div id="output"></div>
+            <button class="copy-btn">COPY</button>
+            <div class="footer">OFFLINE VERSION</div>
+          </div>
+          <script>${document.querySelector('script').innerText}<\/script>
+        </body>
+        </html>
+      `;
+      
+      try {
+        localStorage.setItem('offline_page_v2', essentialHTML);
+        console.log('✅ Page saved for iOS 26 offline');
+      } catch (e) {
+        console.log('⚠️ Storage limit reached');
+      }
+    }
+    
+    // 2. طريقة العمل بدون إنترنت
+    function setupOfflineMode() {
+      const status = document.getElementById('status');
+      
+      // تحديث حالة الاتصال
+      function updateStatus() {
+        if (navigator.onLine) {
+          status.textContent = "● ONLINE";
+          status.className = "status online";
+        } else {
+          status.textContent = "● OFFLINE";
+          status.className = "status offline";
+          
+          // إذا كان أوفلاين، تحقق من وجود نسخة محفوظة
+          if (localStorage.getItem('offline_page_v2')) {
+            status.textContent = "● OFFLINE (SAVED)";
+          }
+        }
+      }
+      
+      // التحقق الأولي
+      updateStatus();
+      
+      // مراقبة التغييرات
+      window.addEventListener('online', updateStatus);
+      window.addEventListener('offline', updateStatus);
+      
+      // حفظ الصفحة عند الاتصال
+      if (navigator.onLine) {
+        setTimeout(savePageForOffline, 1000);
+      }
+      
+      // استعادة آخر إدخال
+      const lastInput = localStorage.getItem('last_input');
+      if (lastInput) {
+        document.getElementById('input').value = lastInput;
+      }
+      
+      // إضافة زر لحفظ الصفحة يدوياً
+      if (!document.getElementById('saveBtn')) {
+        const saveBtn = document.createElement('button');
+        saveBtn.id = 'saveBtn';
+        saveBtn.textContent = 'SAVE FOR OFFLINE';
+        saveBtn.style.background = '#333';
+        saveBtn.style.marginTop = '10px';
+        saveBtn.onclick = savePageForOffline;
+        document.querySelector('.glass').appendChild(saveBtn);
+        
+        setTimeout(() => {
+          saveBtn.textContent = 'SAVED ✓';
+          saveBtn.style.background = '#0a0';
+          setTimeout(() => saveBtn.remove(), 2000);
+        }, 500);
+      }
+    }
+    
+    // 3. البدء عند التحميل
+    window.addEventListener('load', () => {
+      setupOfflineMode();
+      
+      // دعم ضغط Enter
+      document.getElementById('input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') run();
+      });
+      
+      // رسالة ترحيب
+      setTimeout(() => {
+        if (navigator.onLine) {
+          document.getElementById('status').textContent = "● READY";
+        }
+      }, 1500);
+    });
+    
+    // 4. فحص دعم localStorage
+    function checkStorage() {
+      try {
+        localStorage.setItem('test', 'test');
+        localStorage.removeItem('test');
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    
+    // 5. إذا كان localStorage ممتلئاً، نظفه
+    if (!checkStorage()) {
+      console.log('Clearing old data...');
+      localStorage.clear();
+    }
+  </script>
+</body>
+</html>
