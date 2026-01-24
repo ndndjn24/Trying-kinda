@@ -1,0 +1,10 @@
+CACHE MANIFEST
+# Version 1.0
+CACHE:
+index.html
+
+NETWORK:
+*
+
+FALLBACK:
+/ offline.html
