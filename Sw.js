@@ -1,56 +1,47 @@
-// FH Decoder v3 - Service Worker
-const CACHE_NAME = 'fh-decoder-v3';
-const FILES_TO_CACHE = [
+// sw.js - FH Decoder Service Worker
+const CACHE_NAME = 'fh-decoder-v4';
+const URLS_TO_CACHE = [
   '/',
   '/index.html',
-  // سيتم إضافة CSS وJS لاحقاً إذا فصلتهما
+  '/manifest.json'
 ];
 
-// عند التثبيت
+// 1. التثبيت
 self.addEventListener('install', event => {
-  console.log('📱 FH Decoder v3: Installing Service Worker...');
-  
+  console.log('[SW] Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('💾 Caching app shell...');
-        return cache.addAll(FILES_TO_CACHE);
+        console.log('[SW] Caching files...');
+        return cache.addAll(URLS_TO_CACHE);
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('[SW] Installation complete!');
+        return self.skipWaiting();
+      })
   );
 });
 
-// عند التنشيط
+// 2. التنشيط
 self.addEventListener('activate', event => {
-  console.log('🚀 FH Decoder v3: Service Worker activated!');
+  console.log('[SW] Activated!');
   event.waitUntil(self.clients.claim());
 });
 
-// التعامل مع الطلبات
+// 3. التعامل مع الطلبات
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // إذا وجد في الكاش
+        // إذا كان في الكاش
         if (response) {
           return response;
         }
         
-        // إذا لم يجده، يحاول من الشبكة
+        // إذا لم يكن في الكاش
         return fetch(event.request)
-          .then(networkResponse => {
-            // تخزين في الكاش للاستخدام المستقبلي
-            if (event.request.method === 'GET') {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME)
-                .then(cache => {
-                  cache.put(event.request, responseToCache);
-                });
-            }
-            return networkResponse;
-          })
           .catch(() => {
-            // إذا فشل الاتصال، نعيد الصفحة الرئيسية
+            // إذا فشل التحميل، نعيد الصفحة الرئيسية
             return caches.match('/index.html');
           });
       })
