@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="fh.appcache" lang="en">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>FH DECODER</title>
@@ -38,6 +38,7 @@
     
     .online { color: #0f0; }
     .offline { color: #f00; }
+    .ready { color: #00e5ff; }
     
     h1 {
       font-weight: 300;
@@ -45,22 +46,20 @@
       margin-bottom: 20px;
     }
     
-    /* === هذا هو التعديل === */
     input {
       width: 100%;
-      padding: 20px;  /* زدنا من هنا */
+      padding: 20px;
       background: rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 15px;  /* زدنا من هنا */
+      border-radius: 15px;
       color: white;
-      font-size: 17px;  /* زدنا من هنا */
+      font-size: 17px;
       text-align: center;
       margin-bottom: 12px;
       outline: none;
       box-sizing: border-box;
     }
     
-    /* تأثير التركيز */
     input:focus {
       background: rgba(255,255,255,0.05);
       border-color: rgba(255,255,255,0.2);
@@ -68,14 +67,14 @@
     
     button {
       width: 100%;
-      padding: 18px;  /* زدنا من هنا */
+      padding: 18px;
       background: white;
       color: black;
       border: none;
-      border-radius: 15px;  /* زدنا من هنا */
+      border-radius: 15px;
       font-weight: bold;
       font-size: 15px;
-      margin: 10px 0;  /* زدنا من هنا */
+      margin: 10px 0;
       cursor: pointer;
     }
     
@@ -85,13 +84,13 @@
     }
     
     #output {
-      font-size: 24px;  /* زدنا من هنا */
-      margin: 20px 0;  /* زدنا من هنا */
-      min-height: 40px;  /* زدنا من هنا */
+      font-size: 24px;
+      margin: 20px 0;
+      min-height: 40px;
       word-break: break-all;
-      padding: 12px;  /* زدنا من هنا */
+      padding: 12px;
       background: rgba(255,255,255,0.03);
-      border-radius: 12px;  /* زدنا من هنا */
+      border-radius: 12px;
     }
     
     .copy-btn {
@@ -105,6 +104,20 @@
       color: rgba(255,255,255,0.15);
       margin-top: 20px;
     }
+
+    .instagram-link {
+      display: inline-block;
+      margin-top: 15px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.3s;
+    }
+
+    .instagram-link:hover {
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -112,7 +125,6 @@
     <div id="status" class="status">● LOADING</div>
     <h1>FH DECODER</h1>
     
-    <!-- هنا خانة الكتابة المعدلة -->
     <input type="text" id="input" placeholder="WIFI NAME" autocomplete="off">
     
     <button onclick="convert()">CONVERT</button>
@@ -122,6 +134,11 @@
     <button id="copyBtn" class="copy-btn" onclick="copyText()">COPY</button>
     
     <div class="info">OFFLINE MODE | iOS 26</div>
+
+    <!-- إضافة رابط الإنستغرام -->
+    <a href="https://instagram.com/alt.yxf" target="_blank" class="instagram-link">
+      IG: @alt.yxf
+    </a>
   </div>
 
   <script>
@@ -172,37 +189,54 @@
       }, 1500);
     }
 
-    // أبسط طريقة للأوفلاين
+    // إدارة حالة الاتصال ورفع كفاءة العمل أوفلاين
     window.addEventListener('load', () => {
       const status = document.getElementById('status');
       
-      // تحديث الحالة
-      function update() {
-        if (navigator.onLine) {
-          status.textContent = "● ONLINE";
-          status.className = "status online";
-        } else {
+      function updateStatus() {
+        if (!navigator.onLine) {
           status.textContent = "● OFFLINE";
           status.className = "status offline";
+        } else {
+          status.textContent = "● ONLINE / READY";
+          status.className = "status ready";
         }
       }
       
-      update();
-      window.addEventListener('online', update);
-      window.addEventListener('offline', update);
+      updateStatus();
+      window.addEventListener('online', updateStatus);
+      window.addEventListener('offline', updateStatus);
       
-      // Enter key
       document.getElementById('input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') convert();
       });
-      
-      // إضافة مؤشر الأوفلاين بعد تحميل AppCache
-      setTimeout(() => {
-        if (navigator.onLine) {
-          status.textContent = "● OFFLINE READY";
-          status.className = "status online";
-        }
-      }, 2000);
+
+      // تسجيل Service Worker مدمج تلقائياً
+      if ('serviceWorker' in navigator) {
+        const swCode = `
+          const CACHE_NAME = 'fh-decoder-v1';
+          self.addEventListener('install', (e) => {
+            e.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.addAll([location.href]))
+            );
+            self.skipWaiting();
+          });
+          self.addEventListener('fetch', (e) => {
+            e.respondWith(
+              caches.match(e.request).then((res) => res || fetch(e.request))
+            );
+          });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        
+        navigator.serviceWorker.register(swUrl).then(() => {
+          if (navigator.onLine) {
+            status.textContent = "● OFFLINE READY";
+            status.className = "status ready";
+          }
+        }).catch(() => {});
+      }
     });
   </script>
 </body>
