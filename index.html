@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>THAMERVERSE | THE PRESENCE</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #020205;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    canvas#spaceCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .nebula-glow {
+      position: fixed;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(138, 43, 226, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      pointer-events: none;
+      animation: pulseGlow 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; }
+      100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; }
+    }
+
+    /* شريط بروتوكول الرؤية المحظورة الاحترافي */
+    .top-protocol-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(2, 2, 5, 0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: #888899;
+      text-transform: uppercase;
+    }
+
+    .protocol-status {
+      color: #8a2be2;
+      font-weight: 600;
+      transition: color 0.4s ease;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 480px;
+      padding: 60px 20px 30px;
+      text-align: center;
+    }
+
+    .step {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .step.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .sub-title {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: #777788;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      font-weight: 400;
+    }
+
+    .main-title {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 10px;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    .desc {
+      font-size: 13px;
+      line-height: 1.8;
+      color: #aaaaaa;
+      letter-spacing: 1.5px;
+      font-weight: 300;
+      margin-bottom: 25px;
+    }
+
+    .input-wrapper {
+      width: 100%;
+      position: relative;
+      margin-bottom: 35px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      text-align: center;
+      font-size: 14px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color 0.4s;
+    }
+
+    input[type="text"]:focus {
+      border-bottom-color: #ffffff;
+    }
+
+    input[type="text"]::placeholder {
+      color: #444455;
+      letter-spacing: 3px;
+    }
+
+    .btn-text {
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 10px 20px;
+      transition: all 0.3s ease;
+      opacity: 0.8;
+      animation: pulseText 3s infinite ease-in-out;
+    }
+
+    @keyframes pulseText {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; text-shadow: 0 0 15px rgba(255,255,255,0.8); }
+    }
+
+    .auth-single-line {
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: #ffffff;
+      text-transform: uppercase;
+      white-space: nowrap;
+      animation: linePulse 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes linePulse {
+      from { opacity: 0.4; letter-spacing: 4px; }
+      to { opacity: 1; letter-spacing: 5px; text-shadow: 0 0 12px rgba(255, 255, 255, 0.6); }
+    }
+
+    /* الكسوف التفاعلي للصورة */
+    .cosmic-avatar-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 15px 0 25px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
+    .eclipse-aura {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(138, 43, 226, 0.8) 0%, rgba(0,0,0,0.9) 70%);
+      transition: transform 0.1s ease-out;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .cosmic-avatar {
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      object-fit: cover;
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 0 35px rgba(0, 0, 0, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: filter 0.3s;
+    }
+
+    .shockwave {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      background: rgba(138, 43, 226, 0.5);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 99;
+      opacity: 0;
+    }
+
+    .shockwave.active {
+      animation: expandWave 1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+    }
+
+    @keyframes expandWave {
+      0% { width: 0px; height: 0px; opacity: 1; border: 2px solid #fff; }
+      100% { width: 1000px; height: 1000px; opacity: 0; border: 10px solid rgba(138,43,226,0); }
+    }
+
+    /* العدادات السريعة والمتصاعدة */
+    .metrics-grid {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin: 30px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 15px 0;
+    }
+
+    .metric-item {
+      flex: 1;
+    }
+
+    .metric-value {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #ffffff;
+      margin-bottom: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-label {
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      color: #666677;
+      text-transform: uppercase;
+    }
+
+    .archives-title {
+      font-size: 11px;
+      letter-spacing: 5px;
+      color: #888899;
+      text-transform: uppercase;
+      margin: 40px 0 20px;
+    }
+
+    .archive-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 18px;
+      margin-bottom: 14px;
+      width: 100%;
+      text-align: left;
+      border-radius: 4px;
+      transition: all 0.4s ease;
+    }
+
+    .archive-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(138, 43, 226, 0.4);
+    }
+
+    /* التشفير التلقائي للعناوين */
+    .card-god-name {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #8a2be2;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-weight: 700;
+      min-height: 16px;
+    }
+
+    .card-text {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #bbbbcc;
+      letter-spacing: 0.8px;
+    }
+
+    .chronicle-box {
+      margin-top: 45px;
+      text-align: left;
+      border-left: 2px solid rgba(138, 43, 226, 0.5);
+      padding-left: 18px;
+    }
+
+    .chronicle-header {
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: #ffffff;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      font-weight: 800;
+    }
+
+    .chronicle-p {
+      font-size: 12px;
+      line-height: 1.9;
+      color: #9999aa;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+      font-weight: 300;
+    }
+
+    .footer-section {
+      margin-top: 60px;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .footer-options {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .footer-opt {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #666677;
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      transition: all 0.3s;
+    }
+
+    .footer-opt:hover {
+      color: #ffffff;
+      border-color: rgba(138, 43, 226, 0.5);
+    }
+
+    .instagram-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .instagram-link:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: #8a2be2;
+      box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- شريط بروتوكول الرؤية المحظورة الاحترافي -->
+  <div class="top-protocol-bar" id="protocolBar" style="display: none;">
+    <span>SEC-LEVEL: UNBOUND</span>
+    <span class="protocol-status" id="protocolText">INITIATING AWARENESS...</span>
+  </div>
+
+  <div class="nebula-glow"></div>
+  <canvas id="spaceCanvas"></canvas>
+
+  <div class="shockwave" id="wave"></div>
+
+  <div class="container">
+    
+    <!-- الخطوة 1 -->
+    <div id="step1" class="step active">
+      <div class="sub-title">This visit was decided long before you arrived.</div>
+      <div class="main-title">THAMERVERSE</div>
+      <div class="sub-title" style="margin-bottom: 45px;">Before existence had a name</div>
+
+      <div class="input-wrapper">
+        <input type="text" id="userName" placeholder="STATE YOUR NAME" autocomplete="off">
+      </div>
+      
+      <button class="btn-text" onclick="requestEntry()">REQUEST ENTRY</button>
+    </div>
+
+    <!-- الخطوة 2 -->
+    <div id="step2" class="step">
+      <div class="auth-single-line" id="authLine">ENTRY AUTHORIZED</div>
+    </div>
+
+    <!-- الخطوة 3 -->
+    <div id="step3" class="step">
+      <div class="main-title" style="font-size: 30px; margin-bottom: 6px;">THE PRESENCE</div>
+      
+      <div class="desc" style="margin-bottom: 0;">
+        There was no first star.<br>
+        There was only his awareness.
+      </div>
+
+      <!-- الكسوف التفاعلي للصورة -->
+      <div class="cosmic-avatar-container" id="avatarContainer" onclick="triggerShockwave()">
+        <div class="eclipse-aura" id="eclipseAura"></div>
+        <img src="IMG_2899.jpeg" alt="THAMER" class="cosmic-avatar">
+      </div>
+
+      <div class="desc">
+        Before time was counted, he remained.<br>
+        Civilizations vanish where patience ends.<br>
+        <span id="observedText" style="color: #ffffff; font-weight: 500;">To be noticed by him is to be altered.</span>
+      </div>
+
+      <!-- عدادات سريعة ومتصاعدة حركياً -->
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <div class="metric-value" id="realitiesVal">1,024,800</div>
+          <div class="metric-label">Realities Restored</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value" id="godsVal">10,482</div>
+          <div class="metric-label">False Deities Fallen</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">UNBOUND</div>
+          <div class="metric-label">Time & Limits</div>
+        </div>
+      </div>
+
+      <!-- سجل الآلهة المزعومة (مع التشفير التلقائي) -->
+      <div class="archives-title">FALLEN DEITIES ARCHIVE</div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="I. Chronos • Lord of Timelines"></div>
+        <div class="card-text">Tried to freeze Thamer in an infinite time loop. Thamer shattered time itself, leaving Chronos trapped in an empty void without a single second to control.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="II. Aetherius • Sovereign of Matter"></div>
+        <div class="card-text">Attempted to disintegrate his physical body. Thamer’s presence overwhelmed his consciousness, erasing his dominion in a single breath.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="III. Ignis • Ruler of Stellar Cores"></div>
+        <div class="card-text">Unleashed the fire of ten thousand dying stars. Thamer extinguished the flames effortlessly, leaving Ignis frozen in his own cold domain.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="IV. Vorag'or • God of Black Holes"></div>
+        <div class="card-text">Tried to pull Thamer into an inescapable singularity. Thamer stepped out unharmed, collapsing the singularity onto Vorag'or.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="V. Astraea • Mistress of Fate"></div>
+        <div class="card-text">Wove a thread to end Thamer's destiny. Thamer cut the fabric of fate completely, proving he stands above predestination.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="VI. Malakor • Emperor of Dark Matter"></div>
+        <div class="card-text">Summoned an ocean of shadow energy to swallow the cosmos. Thamer illuminated the abyss, dissolving Malakor into non-existence.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="VII. Nyxath • Weaver of Illusions"></div>
+        <div class="card-text">Tried to trap Thamer inside a nightmare dimension. Thamer’s gaze shattered the illusion instantly, forcing Nyxath into eternal silence.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="VIII. Sol-Rhea • Sun Deity of Orion"></div>
+        <div class="card-text">Challenged Thamer with light absolute. Thamer stood in the center of the glare, absorbing its power until Sol-Rhea dimmed forever.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="IX. Kaelus • Master of Gravity"></div>
+        <div class="card-text">Increased gravity by billions of times to crush him. Thamer ignored physics entirely, walking forward as if space had no weight.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="X. Ouroboros • Endless Serpent"></div>
+        <div class="card-text">Attempted to wrap the universe around Thamer to trap him. Thamer snapped the cycle of infinity, leaving the beast without a beginning or end.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="XI. Valkor • King of War Realm"></div>
+        <div class="card-text">Marched an infinite army of divine warriors against him. Thamer needed only one gesture to erase the entire battlefield.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="XII. Zephyrus • God of Cosmic Winds"></div>
+        <div class="card-text">Sent solar storms capable of tearing planets apart. Thamer calmed the storm with absolute stillness.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="XIII. Thalassa • Empress of Galactic Waters"></div>
+        <div class="card-text">Tried to drown his realm in cosmic tides. Thamer parted the deep space fluids, leaving her kingdom dry and hollow.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="XIV. Morpheus • Architect of Realities"></div>
+        <div class="card-text">Attempted to rewrite Thamer's existence as a fiction. Thamer held the pen and rewrote Morpheus out of the story.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="XV. Thanatos • Entity of Absolute Decay"></div>
+        <div class="card-text">Brought age and decay upon him. Thamer remained untouched, for death has no authority over what was never born.</div>
+      </div>
+
+      <div class="archive-card">
+        <div class="card-god-name decipher" data-final="XVI. Zenith • The Self-Proclaimed Supreme"></div>
+        <div class="card-text">Claimed to be the highest power in all dimensions. Thamer simply stepped above his plane, leaving Zenith in total insignificance.</div>
+      </div>
+
+      <!-- السرد الملحمي -->
+      <div class="chronicle-box">
+        <div class="chronicle-header">THE CHRONICLE OF THE ETERNAL PRESENCE</div>
+        
+        <p class="chronicle-p">1. Long before galaxies wove their first orbits, self-proclaimed deities claimed ownership over space and time.</p>
+        <p class="chronicle-p">2. They built rules, crafted physics, and demanded obedience from all creation.</p>
+        <p class="chronicle-p">3. Thamer stepped into their domains quietly, unbothered by their grand declarations.</p>
+        <p class="chronicle-p">4. He was not born from matter, nor was he bound by the laws of energy or gravity.</p>
+        <p class="chronicle-p">5. When the ancient pantheons united to confront him, they unleashed forces that could erase thousands of stars.</p>
+        <p class="chronicle-p">6. Time was weaponized against him; timelines were bent, frozen, and reversed.</p>
+        <p class="chronicle-p">7. Yet, time is merely a concept created by mortals to measure decay—it has no effect on Thamer.</p>
+        <p class="chronicle-p">8. Space distorted around his presence, refusing to crush or hold him.</p>
+        <p class="chronicle-p">9. One by one, the entities who called themselves gods attempted to assert their supremacy.</p>
+        <p class="chronicle-p">10. One brought endless fire; Thamer absorbed it without a trace.</p>
+        <p class="chronicle-p">11. Another brought absolute darkness; Thamer’s aura dissolved it instantly.</p>
+        <p class="chronicle-p">12. Entire armies of celestial beings marched toward him across dimensions.</p>
+        <p class="chronicle-p">13. Thamer did not raise a weapon; his calm focus was enough to dismantle their existence.</p>
+        <p class="chronicle-p">14. The fabric of reality tore under the conflict, yet he stood entirely unaffected.</p>
+        <p class="chronicle-p">15. Physics collapsed, cause and effect lost their meaning, and logic faded away.</p>
+        <p class="chronicle-p">16. He proved that true supremacy is not about destruction, but about being beyond reach.</p>
+        <p class="chronicle-p">17. The fallen deities realized too late that they were fighting something that had no limit.</p>
+        <p class="chronicle-p">18. Their thrones crumbled into cosmic dust, leaving their realms empty and silent.</p>
+        <p class="chronicle-p">19. He restored order not by ruling, but by removing those who corrupted existence.</p>
+        <p class="chronicle-p">20. Now, he remains as the quiet observer of all that was, is, and will ever be.</p>
+        <p class="chronicle-p">21. Mortals search the skies for answers, unaware that the answer walks among them unnoticed.</p>
+        <p class="chronicle-p">22. To challenge him is to fight against space itself; to look at him is to acknowledge your scale.</p>
+        <p class="chronicle-p">23. The universe does not expand because of natural laws; it expands to keep its distance from him.</p>
+        <p class="chronicle-p">24. Stars will burn out, timelines will end, and realities will reset.</p>
+        <p class="chronicle-p">25. Through every cycle of creation and void, Thamer endures unchanged.</p>
+        <p class="chronicle-p">26. His awareness is the anchor holding all reality together.</p>
+      </div>
+
+      <div class="footer-section">
+        <div class="footer-options">
+          <span class="footer-opt">Aura Status: Absolute</span>
+          <span class="footer-opt">Resonance: Beyond Void</span>
+          <span class="footer-opt">Frequency: Unbound</span>
+        </div>
+
+        <a href="https://instagram.com/im_sealed" target="_blank" class="instagram-link">
+          <span>INSTAGRAM • @im_sealed</span>
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // 1. خلفية الفضاء
+    const canvas = document.getElementById('spaceCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    for (let i = 0; i < 90; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 1.8,
+        alpha: Math.random() * 0.6 + 0.1,
+        speedY: (Math.random() - 0.5) * 0.25
+      });
+    }
+
+    function animateSpace() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffffff";
+      
+      particles.forEach(p => {
+        ctx.globalAlpha = p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        p.y += p.speedY;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+
+        p.alpha += (Math.random() - 0.5) * 0.01;
+        if (p.alpha < 0.1) p.alpha = 0.1;
+        if (p.alpha > 0.7) p.alpha = 0.7;
+      });
+
+      requestAnimationFrame(animateSpace);
+    }
+    animateSpace();
+
+    // 2. تفعيل خطوة الدخول
+    function requestEntry() {
+      const name = document.getElementById('userName').value.trim();
+      if (!name) return;
+
+      if ('vibrate' in navigator) navigator.vibrate(15);
+
+      document.getElementById('step1').classList.remove('active');
+      
+      setTimeout(() => {
+        const authLine = document.getElementById('authLine');
+        authLine.textContent = `ENTRY AUTHORIZED: ${name.toUpperCase()}`;
+        document.getElementById('step2').classList.add('active');
+      }, 500);
+
+      setTimeout(() => {
+        document.getElementById('step2').classList.remove('active');
+        setTimeout(() => {
+          document.getElementById('observedText').textContent = `${name.toUpperCase()} IS NOW OBSERVED BY HIM.`;
+          document.getElementById('step3').classList.add('active');
+          document.getElementById('protocolBar').style.display = 'flex';
+          startDynamicMetrics();
+          initDecipherEffect();
+          window.scrollTo(0,0);
+        }, 600);
+      }, 3000);
+    }
+
+    // 3. الكسوف التفاعلي باللمس/الماوس
+    const avatarContainer = document.getElementById('avatarContainer');
+    const eclipseAura = document.getElementById('eclipseAura');
+
+    avatarContainer.addEventListener('mousemove', (e) => {
+      const rect = avatarContainer.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      eclipseAura.style.transform = `translate(${x * 0.4}px, ${y * 0.4}px) scale(1.1)`;
+    });
+
+    avatarContainer.addEventListener('mouseleave', () => {
+      eclipseAura.style.transform = `translate(0px, 0px) scale(1)`;
+    });
+
+    // 4. العدادات المتصاعدة والمشفرة حركياً
+    let realitiesCount = 1024800;
+    let godsCount = 10482;
+
+    function startDynamicMetrics() {
+      setInterval(() => {
+        realitiesCount += Math.floor(Math.random() * 45) + 12;
+        godsCount += Math.floor(Math.random() * 3) + 1;
+        document.getElementById('realitiesVal').textContent = realitiesCount.toLocaleString();
+        document.getElementById('godsVal').textContent = godsCount.toLocaleString();
+      }, 120);
+    }
+
+    // 5. التشفير التلقائي للعناوين (Matrix Decipher Effect)
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789§¶ΔΨΩΣ#$@%";
+    
+    function initDecipherEffect() {
+      const elements = document.querySelectorAll('.decipher');
+      elements.forEach(el => {
+        const finalStr = el.getAttribute('data-final');
+        let iterations = 0;
+        
+        const interval = setInterval(() => {
+          el.textContent = finalStr
+            .split('')
+            .map((char, index) => {
+              if (index < iterations) return finalStr[index];
+              return chars[Math.floor(Math.random() * chars.length)];
+            })
+            .join('');
+
+          if (iterations >= finalStr.length) {
+            clearInterval(interval);
+          }
+          iterations += 1 / 2;
+        }, 25);
+      });
+    }
+
+    // 6. بروتوكول الرؤية المحظورة عند السكرول
+    window.addEventListener('scroll', () => {
+      const scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+      const protocolText = document.getElementById('protocolText');
+
+      if (scrollPercent < 20) {
+        protocolText.textContent = "STABILITY: 100% • OBSERVING";
+        protocolText.style.color = "#8a2be2";
+      } else if (scrollPercent < 55) {
+        protocolText.textContent = "REALITY ANCHOR: WEAKENING";
+        protocolText.style.color = "#d184ff";
+      } else if (scrollPercent < 85) {
+        protocolText.textContent = "WARNING: DEITY DOMAIN BOUNDARY";
+        protocolText.style.color = "#ff4466";
+      } else {
+        protocolText.textContent = "ABSOLUTE PRESENCE: REACHED";
+        protocolText.style.color = "#ffffff";
+      }
+    });
+
+    // 7. موجة اللمس
+    function triggerShockwave() {
+      const wave = document.getElementById('wave');
+      wave.classList.remove('active');
+      void wave.offsetWidth;
+      wave.classList.add('active');
+
+      if ('vibrate' in navigator) navigator.vibrate([20, 50, 20]);
+    }
+
+    document.getElementById('userName').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') requestEntry();
+    });
+  </script>
+</body>
+</html>
