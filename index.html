@@ -7,56 +7,304 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
-    :root { --glass: rgba(255, 255, 255, 0.03); --border: rgba(255, 255, 255, 0.1); --bg-dark: #050505; }
-    body { margin: 0; font-family: -apple-system, sans-serif; background: var(--bg-dark); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-    .container { background: var(--glass); backdrop-filter: blur(30px); border: 1px solid var(--border); padding: 50px 30px; border-radius: 40px; width: 85%; max-width: 380px; text-align: center; position: relative; }
-    .status-indicator { position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 10px; color: #555; }
-    .ready { color: #00ff88; }
-    input { width: 100%; padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 20px; color: white; text-align: center; outline: none; margin-bottom: 20px; }
-    .action-btn { width: 100%; padding: 18px; border-radius: 20px; border: none; font-weight: 600; cursor: pointer; transition: 0.1s; text-transform: uppercase; }
-    .convert-btn { background: white; color: black; }
-    .convert-btn:active { transform: scale(0.96); }
-    .copy-btn { margin-top: 15px; background: #252525; color: #999; display: none; }
-    #output { margin-top: 40px; font-size: 30px; font-weight: 200; word-break: break-all; }
+    :root {
+      --bg-dark: #050505;
+      --accent-red: #d92b3a;
+      --accent-hover: #c22230;
+      --text-muted: #777777;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-dark);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* خلفية سوداء بالكامل بدون تدرجات حمراء مزعجة */
+    .bg-space {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-dark);
+      z-index: -1;
+    }
+
+    /* الحاوية بدون مربع (Clean Layout) */
+    .main-wrapper {
+      width: 85%;
+      max-width: 340px;
+      text-align: center;
+      position: relative;
+    }
+
+    h2 {
+      font-weight: 200;
+      letter-spacing: 5px;
+      margin-bottom: 45px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 20px;
+    }
+
+    /* مؤشر حالة الأوفلاين هادئ جداً في الأعلى */
+    .status-indicator {
+      position: absolute;
+      top: -35px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      color: #444;
+      text-transform: uppercase;
+    }
+    
+    .ready { 
+      color: var(--accent-red); 
+    }
+
+    /* خانة الكتابة */
+    .input-group {
+      position: relative;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 18px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      color: white;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+      text-align: center;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    input:focus {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--accent-red);
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      border: none;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* زر التحويل بلون أحمر عادي غير فاقع */
+    .convert-btn {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    .convert-btn:active {
+      transform: scale(0.97);
+      background: var(--accent-hover);
+    }
+
+    #output {
+      margin-top: 30px;
+      font-size: 26px;
+      font-weight: 200;
+      color: #ffffff;
+      min-height: 35px;
+      letter-spacing: 1px;
+      word-break: break-all;
+    }
+
+    /* حاوية الأزرار السفلية (Clear و Copy جنباً إلى جنب) */
+    .bottom-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      display: none; /* مخفية حتى يتم توليد الناتج */
+    }
+
+    .sub-btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: 0.2s;
+    }
+
+    .clear-action-btn {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+    }
+
+    .clear-action-btn:active {
+      background: rgba(255, 255, 255, 0.06);
+      color: white;
+    }
+
+    .copy-action-btn {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+
+    .copy-action-btn:active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* العلامة المائية للانستغرام في الأسفل */
+    .watermark {
+      position: fixed;
+      bottom: 25px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+      text-decoration: none;
+      letter-spacing: 2px;
+      transition: color 0.3s;
+    }
+
+    .watermark:hover {
+      color: var(--accent-red);
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="statusText" class="status-indicator">LOADING v3...</div>
+
+  <div class="bg-space"></div>
+
+  <div class="main-wrapper">
+    <div id="statusText" class="status-indicator">LOADING...</div>
+    
     <h2>FH DECODER</h2>
-    <input id="input" type="text" placeholder="WIFI NAME" autocomplete="off">
+    
+    <div class="input-group">
+      <input id="input" type="text" placeholder="WIFI NAME" autocomplete="off">
+    </div>
+    
     <button class="action-btn convert-btn" onclick="run()">CONVERT</button>
+
     <div id="output"></div>
-    <button id="copyBtn" class="action-btn copy-btn" onclick="copyToClipboard()">TAP TO COPY</button>
+    
+    <!-- زرا الـ Clear والـ Copy جنباً إلى جنب بعد إظهار الناتج -->
+    <div id="bottomActions" class="bottom-actions">
+      <button class="sub-btn clear-action-btn" onclick="clearAll()">CLEAR</button>
+      <button id="copyBtn" class="sub-btn copy-action-btn" onclick="copyToClipboard()">COPY</button>
+    </div>
   </div>
 
+  <a href="https://www.instagram.com/alt.yxf" target="_blank" class="watermark">
+    YOUCEF DJEBBAR | IG: alt.yxf
+  </a>
+
   <script>
-    const map = {"5":"a","4":"b","3":"c","2":"d","1":"e","0":"f","g":"z","h":"y","i":"x","j":"w","k":"v","l":"u","m":"t","n":"s","o":"r","p":"q","q":"p","r":"o","s":"n","t":"m","u":"l","f":"0","z":"g","y":"h","x":"i","w":"j","v":"k","e":"1","d":"2","c":"3","b":"4","a":"5","9":"6","8":"7","7":"8","6":"9"};
+    const map = {
+      "5":"a","4":"b","3":"c","2":"d","1":"e","0":"f",
+      "g":"z","h":"y","i":"x","j":"w","k":"v","l":"u",
+      "m":"t","n":"s","o":"r","p":"q","q":"p","r":"o",
+      "s":"n","t":"m","u":"l","f":"0",
+      "z":"g","y":"h","x":"i","w":"j","v":"k",
+      "e":"1","d":"2","c":"3","b":"4","a":"5",
+      "9":"6","8":"7","7":"8","6":"9"
+    };
+
     function run() {
       let inputVal = document.getElementById("input").value.trim().toLowerCase();
-      let result = ""; let text = inputVal;
-      if (inputVal.startsWith("fh_")) { result = "wlan"; text = inputVal.substring(3); }
-      for (let ch of text) { result += map[ch] ?? ch; }
-      document.getElementById("output").textContent = result;
-      document.getElementById("copyBtn").style.display = "block";
+      const output = document.getElementById("output");
+      const bottomActions = document.getElementById("bottomActions");
+
+      if (inputVal === "") return;
+
+      let result = "";
+      let remainingText = inputVal;
+
+      if (inputVal.startsWith("fh_")) {
+        result = "wlan";
+        remainingText = inputVal.substring(3);
+      }
+
+      for (let ch of remainingText) {
+        result += map[ch] ?? ch;
+      }
+
+      output.textContent = result;
+      bottomActions.style.display = "flex";
     }
+
+    function clearAll() {
+      document.getElementById("input").value = "";
+      document.getElementById("output").textContent = "";
+      document.getElementById("bottomActions").style.display = "none";
+      document.getElementById("input").focus();
+    }
+
     function copyToClipboard() {
-      navigator.clipboard.writeText(document.getElementById("output").textContent).then(() => {
-        document.getElementById("copyBtn").textContent = "COPIED ✅";
-        setTimeout(() => { document.getElementById("copyBtn").textContent = "TAP TO COPY"; }, 2000);
+      const text = document.getElementById("output").textContent;
+      const btn = document.getElementById("copyBtn");
+      
+      if (navigator.vibrate) navigator.vibrate(40);
+      
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = "COPIED ✅";
+        setTimeout(() => { 
+          btn.textContent = "COPY"; 
+        }, 2000);
       });
     }
 
+    // --- نظام التشغيل أوفلاين (PWA Service Worker) ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swBlob = new Blob([`
-          self.addEventListener('install', e => e.waitUntil(caches.open('v3').then(c => c.add(new Request(self.location.href, {cache: 'reload'})))));
-          self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+          self.addEventListener('install', e => {
+            self.skipWaiting();
+            e.waitUntil(caches.open('fh-clean-v3').then(c => c.add(new Request(self.location.href, {cache: 'reload'}))));
+          });
+          self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+          self.addEventListener('fetch', e => {
+            e.respondWith(
+              fetch(e.request)
+                .then(res => {
+                  const resClone = res.clone();
+                  caches.open('fh-clean-v3').then(c => c.put(e.request, resClone));
+                  return res;
+                })
+                .catch(() => caches.match(e.request))
+            );
+          });
         `], {type: 'text/javascript'});
+
         navigator.serviceWorker.register(URL.createObjectURL(swBlob)).then(() => {
-          document.getElementById('statusText').textContent = "● OFFLINE READY (v3)";
-          document.getElementById('statusText').classList.add('ready');
-        });
+          const status = document.getElementById('statusText');
+          status.textContent = "● OFFLINE READY";
+          status.classList.add('ready');
+        }).catch(err => console.log('SW error', err));
       });
     }
   </script>
