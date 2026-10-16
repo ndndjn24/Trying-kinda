@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>FH DECODER v3</title>
+  <title>FH DECODER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -34,15 +34,6 @@
       max-width: 340px;
       text-align: center;
       position: relative;
-    }
-
-    h2 {
-      font-weight: 200;
-      letter-spacing: 8px;
-      margin-bottom: 40px;
-      color: var(--text-main);
-      font-size: 20px;
-      text-transform: uppercase;
     }
 
     /* خانة الكتابة */
@@ -142,7 +133,7 @@
       background: #161616;
     }
 
-    /* العلامة المائية في الأسفل */
+    /* رابط الإنستغرام المخفي في الأسفل بدون أي إشارات بصريّة */
     .watermark {
       position: fixed;
       bottom: 25px;
@@ -153,19 +144,14 @@
       color: rgba(255, 255, 255, 0.2);
       text-decoration: none;
       letter-spacing: 2px;
-      transition: color 0.3s;
-    }
-
-    .watermark:hover {
-      color: #ffffff;
+      cursor: default; /* يبدو كنص عادي تماماً عند مرور الماوس */
+      -webkit-tap-highlight-color: transparent;
     }
   </style>
 </head>
 <body>
 
   <div class="main-wrapper">
-    <h2>FH DECODER</h2>
-    
     <div class="input-group">
       <input id="input" type="text" placeholder="WIFI NAME" autocomplete="off">
     </div>
@@ -180,8 +166,9 @@
     </div>
   </div>
 
+  <!-- رابط الإنستغرام شغال ومخفي التصميم تماماً -->
   <a href="https://www.instagram.com/alt.yxf" target="_blank" class="watermark">
-    YOUCEF DJEBBAR | IG: alt.yxf
+    IG: alt.yxf
   </a>
 
   <script>
