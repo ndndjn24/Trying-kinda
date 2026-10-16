@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FH DECODER v3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    :root { --glass: rgba(255, 255, 255, 0.03); --border: rgba(255, 255, 255, 0.1); --bg-dark: #050505; }
+    body { margin: 0; font-family: -apple-system, sans-serif; background: var(--bg-dark); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+    .container { background: var(--glass); backdrop-filter: blur(30px); border: 1px solid var(--border); padding: 50px 30px; border-radius: 40px; width: 85%; max-width: 380px; text-align: center; position: relative; }
+    .status-indicator { position: absolute; top: 20px; left: 0; width: 100%; text-align: center; font-size: 10px; color: #555; }
+    .ready { color: #00ff88; }
+    input { width: 100%; padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 20px; color: white; text-align: center; outline: none; margin-bottom: 20px; }
+    .action-btn { width: 100%; padding: 18px; border-radius: 20px; border: none; font-weight: 600; cursor: pointer; transition: 0.1s; text-transform: uppercase; }
+    .convert-btn { background: white; color: black; }
+    .convert-btn:active { transform: scale(0.96); }
+    .copy-btn { margin-top: 15px; background: #252525; color: #999; display: none; }
+    #output { margin-top: 40px; font-size: 30px; font-weight: 200; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="statusText" class="status-indicator">LOADING v3...</div>
+    <h2>FH DECODER</h2>
+    <input id="input" type="text" placeholder="WIFI NAME" autocomplete="off">
+    <button class="action-btn convert-btn" onclick="run()">CONVERT</button>
+    <div id="output"></div>
+    <button id="copyBtn" class="action-btn copy-btn" onclick="copyToClipboard()">TAP TO COPY</button>
+  </div>
+
+  <script>
+    const map = {"5":"a","4":"b","3":"c","2":"d","1":"e","0":"f","g":"z","h":"y","i":"x","j":"w","k":"v","l":"u","m":"t","n":"s","o":"r","p":"q","q":"p","r":"o","s":"n","t":"m","u":"l","f":"0","z":"g","y":"h","x":"i","w":"j","v":"k","e":"1","d":"2","c":"3","b":"4","a":"5","9":"6","8":"7","7":"8","6":"9"};
+    function run() {
+      let inputVal = document.getElementById("input").value.trim().toLowerCase();
+      let result = ""; let text = inputVal;
+      if (inputVal.startsWith("fh_")) { result = "wlan"; text = inputVal.substring(3); }
+      for (let ch of text) { result += map[ch] ?? ch; }
+      document.getElementById("output").textContent = result;
+      document.getElementById("copyBtn").style.display = "block";
+    }
+    function copyToClipboard() {
+      navigator.clipboard.writeText(document.getElementById("output").textContent).then(() => {
+        document.getElementById("copyBtn").textContent = "COPIED ✅";
+        setTimeout(() => { document.getElementById("copyBtn").textContent = "TAP TO COPY"; }, 2000);
+      });
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        const swBlob = new Blob([`
+          self.addEventListener('install', e => e.waitUntil(caches.open('v3').then(c => c.add(new Request(self.location.href, {cache: 'reload'})))));
+          self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+        `], {type: 'text/javascript'});
+        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).then(() => {
+          document.getElementById('statusText').textContent = "● OFFLINE READY (v3)";
+          document.getElementById('statusText').classList.add('ready');
+        });
+      });
+    }
+  </script>
+</body>
+</html>
