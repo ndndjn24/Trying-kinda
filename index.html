@@ -8,17 +8,18 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     :root {
-      --bg-dark: #050505;
-      --accent-red: #d92b3a;
-      --accent-hover: #c22230;
-      --text-muted: #777777;
+      --bg-dark: #000000;
+      --card-bg: #0a0a0a;
+      --border-light: rgba(255, 255, 255, 0.12);
+      --text-main: #ffffff;
+      --text-muted: #666666;
     }
 
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
       background: var(--bg-dark);
-      color: white;
+      color: var(--text-main);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -28,16 +29,6 @@
       user-select: none;
     }
 
-    /* خلفية سوداء بالكامل بدون تدرجات حمراء مزعجة */
-    .bg-space {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: var(--bg-dark);
-      z-index: -1;
-    }
-
-    /* الحاوية بدون مربع (Clean Layout) */
     .main-wrapper {
       width: 85%;
       max-width: 340px;
@@ -47,55 +38,40 @@
 
     h2 {
       font-weight: 200;
-      letter-spacing: 5px;
-      margin-bottom: 45px;
-      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: 8px;
+      margin-bottom: 40px;
+      color: var(--text-main);
       font-size: 20px;
-    }
-
-    /* مؤشر حالة الأوفلاين هادئ جداً في الأعلى */
-    .status-indicator {
-      position: absolute;
-      top: -35px;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      font-size: 8px;
-      letter-spacing: 1.5px;
-      color: #444;
       text-transform: uppercase;
-    }
-    
-    .ready { 
-      color: var(--accent-red); 
     }
 
     /* خانة الكتابة */
     .input-group {
       position: relative;
       width: 100%;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     input {
       width: 100%;
       padding: 18px 20px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--card-bg);
+      border: 1px solid var(--border-light);
       border-radius: 16px;
-      color: white;
-      font-size: 16px;
+      color: var(--text-main);
+      font-size: 15px;
       outline: none;
-      transition: all 0.3s ease;
+      transition: all 0.25s ease;
       box-sizing: border-box;
       text-align: center;
+      letter-spacing: 1px;
       -webkit-user-select: text;
       user-select: text;
     }
 
     input:focus {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: var(--accent-red);
+      border-color: rgba(255, 255, 255, 0.5);
+      background: #111111;
     }
 
     .action-btn {
@@ -107,76 +83,66 @@
       font-size: 13px;
       cursor: pointer;
       transition: transform 0.1s, background 0.2s;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
       text-transform: uppercase;
       outline: none;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* زر التحويل بلون أحمر عادي غير فاقع */
+    /* زر التحويل أبيض وأسود */
     .convert-btn {
-      background: var(--accent-red);
-      color: white;
+      background: #ffffff;
+      color: #000000;
     }
 
     .convert-btn:active {
       transform: scale(0.97);
-      background: var(--accent-hover);
+      background: #dddddd;
     }
 
     #output {
-      margin-top: 30px;
+      margin-top: 35px;
       font-size: 26px;
       font-weight: 200;
-      color: #ffffff;
+      color: var(--text-main);
       min-height: 35px;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
       word-break: break-all;
     }
 
-    /* حاوية الأزرار السفلية (Clear و Copy جنباً إلى جنب) */
+    /* زرا Clear و Copy متجاوران */
     .bottom-actions {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       margin-top: 20px;
-      display: none; /* مخفية حتى يتم توليد الناتج */
+      display: none;
     }
 
     .sub-btn {
       flex: 1;
       padding: 14px;
       border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      font-weight: 600;
-      font-size: 12px;
+      border: 1px solid var(--border-light);
+      background: var(--card-bg);
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 11px;
       cursor: pointer;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
       outline: none;
       -webkit-tap-highlight-color: transparent;
-      transition: 0.2s;
+      transition: all 0.2s ease;
     }
 
-    .clear-action-btn {
-      background: rgba(255, 255, 255, 0.02);
-      color: var(--text-muted);
+    .sub-btn:active {
+      transform: scale(0.97);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.4);
+      background: #161616;
     }
 
-    .clear-action-btn:active {
-      background: rgba(255, 255, 255, 0.06);
-      color: white;
-    }
-
-    .copy-action-btn {
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-    }
-
-    .copy-action-btn:active {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    /* العلامة المائية للانستغرام في الأسفل */
+    /* العلامة المائية في الأسفل */
     .watermark {
       position: fixed;
       bottom: 25px;
@@ -191,17 +157,13 @@
     }
 
     .watermark:hover {
-      color: var(--accent-red);
+      color: #ffffff;
     }
   </style>
 </head>
 <body>
 
-  <div class="bg-space"></div>
-
   <div class="main-wrapper">
-    <div id="statusText" class="status-indicator">LOADING...</div>
-    
     <h2>FH DECODER</h2>
     
     <div class="input-group">
@@ -212,10 +174,9 @@
 
     <div id="output"></div>
     
-    <!-- زرا الـ Clear والـ Copy جنباً إلى جنب بعد إظهار الناتج -->
     <div id="bottomActions" class="bottom-actions">
-      <button class="sub-btn clear-action-btn" onclick="clearAll()">CLEAR</button>
-      <button id="copyBtn" class="sub-btn copy-action-btn" onclick="copyToClipboard()">COPY</button>
+      <button class="sub-btn" onclick="clearAll()">CLEAR</button>
+      <button id="copyBtn" class="sub-btn" onclick="copyToClipboard()">COPY</button>
     </div>
   </div>
 
@@ -268,23 +229,25 @@
       const text = document.getElementById("output").textContent;
       const btn = document.getElementById("copyBtn");
       
-      if (navigator.vibrate) navigator.vibrate(40);
+      if (navigator.vibrate) navigator.vibrate(30);
       
       navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = "COPIED ✅";
+        btn.textContent = "COPIED";
+        btn.style.color = "#ffffff";
         setTimeout(() => { 
           btn.textContent = "COPY"; 
-        }, 2000);
+          btn.style.color = "var(--text-muted)";
+        }, 1800);
       });
     }
 
-    // --- نظام التشغيل أوفلاين (PWA Service Worker) ---
+    // --- نظام الأوفلاين الشغّال في الخلفية تلقائياً ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swBlob = new Blob([`
           self.addEventListener('install', e => {
             self.skipWaiting();
-            e.waitUntil(caches.open('fh-clean-v3').then(c => c.add(new Request(self.location.href, {cache: 'reload'}))));
+            e.waitUntil(caches.open('fh-bw-v3').then(c => c.add(new Request(self.location.href, {cache: 'reload'}))));
           });
           self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
           self.addEventListener('fetch', e => {
@@ -292,7 +255,7 @@
               fetch(e.request)
                 .then(res => {
                   const resClone = res.clone();
-                  caches.open('fh-clean-v3').then(c => c.put(e.request, resClone));
+                  caches.open('fh-bw-v3').then(c => c.put(e.request, resClone));
                   return res;
                 })
                 .catch(() => caches.match(e.request))
@@ -300,11 +263,7 @@
           });
         `], {type: 'text/javascript'});
 
-        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).then(() => {
-          const status = document.getElementById('statusText');
-          status.textContent = "● OFFLINE READY";
-          status.classList.add('ready');
-        }).catch(err => console.log('SW error', err));
+        navigator.serviceWorker.register(URL.createObjectURL(swBlob));
       });
     }
   </script>
