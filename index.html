@@ -15,6 +15,11 @@
       --text-muted: #666666;
     }
 
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
@@ -25,11 +30,8 @@
       align-items: center;
       min-height: 100vh;
       overflow: hidden;
-      -webkit-user-select: none;
-      user-select: none;
     }
 
-    /* خلفية هادئة جداً تتدرج بلطف لكسر الملل */
     .bg-gradient {
       position: absolute;
       width: 100%;
@@ -38,27 +40,26 @@
       z-index: -1;
     }
 
-    /* ظهور عناصر الواجهة بحركة انسيابية */
     .main-wrapper {
       width: 85%;
       max-width: 340px;
       text-align: center;
       position: relative;
-      animation: fadeIn 0.6s ease-out;
+      animation: fadeIn 0.4s ease-out;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* خانة الكتابة */
     .input-group {
       position: relative;
       width: 100%;
       margin-bottom: 20px;
     }
 
+    /* السماح الصريح بالكتابة والتفاعل على أجهزة الأندرويد */
     input {
       width: 100%;
       padding: 18px 20px;
@@ -66,14 +67,14 @@
       border: 1px solid var(--border-light);
       border-radius: 18px;
       color: var(--text-main);
-      font-size: 15px;
+      font-size: 16px;
       outline: none;
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      box-sizing: border-box;
+      transition: all 0.25s ease;
       text-align: center;
       letter-spacing: 1px;
-      -webkit-user-select: text;
-      user-select: text;
+      -webkit-user-select: text !important;
+      user-select: text !important;
+      pointer-events: auto !important;
     }
 
     input:focus {
@@ -90,11 +91,10 @@
       font-weight: 600;
       font-size: 13px;
       cursor: pointer;
-      transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.15s ease, background 0.2s ease;
       letter-spacing: 2px;
       text-transform: uppercase;
       outline: none;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .convert-btn {
@@ -116,10 +116,8 @@
       min-height: 40px;
       letter-spacing: 2px;
       word-break: break-all;
-      transition: all 0.3s ease;
     }
 
-    /* زرا Clear و Copy متجاوران ويظهران بحركة ناعمة */
     .bottom-actions {
       display: flex;
       gap: 12px;
@@ -149,7 +147,6 @@
       letter-spacing: 1.5px;
       text-transform: uppercase;
       outline: none;
-      -webkit-tap-highlight-color: transparent;
       transition: all 0.2s ease;
     }
 
@@ -160,7 +157,6 @@
       background: #181818;
     }
 
-    /* رابط الإنستغرام في الأسفل بدون رسميات ومريح للعين */
     .watermark {
       position: fixed;
       bottom: 25px;
@@ -173,7 +169,6 @@
       letter-spacing: 2px;
       cursor: default;
       transition: opacity 0.2s;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .watermark:active {
@@ -215,6 +210,11 @@
       "9":"6","8":"7","7":"8","6":"9"
     };
 
+    // إعادة تصفير الصفحة تماماً لمنع ظهور الباسورد القديم أو الـ Glitch عند الدخول للموقع
+    window.addEventListener('DOMContentLoaded', () => {
+      clearAll();
+    });
+
     function run() {
       let inputVal = document.getElementById("input").value.trim().toLowerCase();
       const output = document.getElementById("output");
@@ -249,16 +249,17 @@
 
     function clearAll() {
       if (navigator.vibrate) navigator.vibrate(15);
-      document.getElementById("input").value = "";
+      const inputEl = document.getElementById("input");
+      inputEl.value = "";
       document.getElementById("output").textContent = "";
       document.getElementById("bottomActions").classList.remove("visible");
-      document.getElementById("input").focus();
     }
 
     function copyToClipboard() {
       const text = document.getElementById("output").textContent;
       const btn = document.getElementById("copyBtn");
       
+      if (!text) return;
       if (navigator.vibrate) navigator.vibrate(40);
       
       navigator.clipboard.writeText(text).then(() => {
@@ -271,13 +272,13 @@
       });
     }
 
-    // --- نظام الأوفلاين الشغّال في الخلفية تلقائياً ---
+    // --- نظام الأوفلاين الشغال في الخلفية ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swBlob = new Blob([`
           self.addEventListener('install', e => {
             self.skipWaiting();
-            e.waitUntil(caches.open('fh-bw-v3').then(c => c.add(new Request(self.location.href, {cache: 'reload'}))));
+            e.waitUntil(caches.open('fh-bw-v4').then(c => c.add(new Request(self.location.href, {cache: 'reload'}))));
           });
           self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
           self.addEventListener('fetch', e => {
@@ -285,7 +286,7 @@
               fetch(e.request)
                 .then(res => {
                   const resClone = res.clone();
-                  caches.open('fh-bw-v3').then(c => c.put(e.request, resClone));
+                  caches.open('fh-bw-v4').then(c => c.put(e.request, resClone));
                   return res;
                 })
                 .catch(() => caches.match(e.request))
