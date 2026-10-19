@@ -45,12 +45,6 @@
       max-width: 340px;
       text-align: center;
       position: relative;
-      animation: fadeIn 0.4s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     .input-group {
@@ -59,7 +53,7 @@
       margin-bottom: 20px;
     }
 
-    /* السماح الصريح بالكتابة والتفاعل على أجهزة الأندرويد */
+    /* حقل إدخال حر ومباشر بدون أي قيود تمنع ظهور الكيبورد */
     input {
       width: 100%;
       padding: 18px 20px;
@@ -69,12 +63,10 @@
       color: var(--text-main);
       font-size: 16px;
       outline: none;
-      transition: all 0.25s ease;
       text-align: center;
       letter-spacing: 1px;
-      -webkit-user-select: text !important;
-      user-select: text !important;
-      pointer-events: auto !important;
+      -webkit-user-select: text;
+      user-select: text;
     }
 
     input:focus {
@@ -91,7 +83,6 @@
       font-weight: 600;
       font-size: 13px;
       cursor: pointer;
-      transition: transform 0.15s ease, background 0.2s ease;
       letter-spacing: 2px;
       text-transform: uppercase;
       outline: none;
@@ -147,7 +138,6 @@
       letter-spacing: 1.5px;
       text-transform: uppercase;
       outline: none;
-      transition: all 0.2s ease;
     }
 
     .sub-btn:active {
@@ -168,11 +158,6 @@
       text-decoration: none;
       letter-spacing: 2px;
       cursor: default;
-      transition: opacity 0.2s;
-    }
-
-    .watermark:active {
-      opacity: 0.6;
     }
   </style>
 </head>
@@ -182,7 +167,7 @@
 
   <div class="main-wrapper">
     <div class="input-group">
-      <input id="input" type="text" placeholder="WIFI NAME" autocomplete="off" oninput="autoConvertIfPasted()">
+      <input id="input" type="text" placeholder="WIFI NAME" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="autoConvertIfPasted()">
     </div>
     
     <button class="action-btn convert-btn" onclick="run()">CONVERT</button>
@@ -210,7 +195,6 @@
       "9":"6","8":"7","7":"8","6":"9"
     };
 
-    // إعادة تصفير الصفحة تماماً لمنع ظهور الباسورد القديم أو الـ Glitch عند الدخول للموقع
     window.addEventListener('DOMContentLoaded', () => {
       clearAll();
     });
@@ -221,7 +205,6 @@
       const bottomActions = document.getElementById("bottomActions");
 
       if (inputVal === "") return;
-
       if (navigator.vibrate) navigator.vibrate(25);
 
       let result = "";
@@ -272,29 +255,26 @@
       });
     }
 
-    // --- نظام الأوفلاين الشغال في الخلفية ---
+    // --- نظام الأوفلاين الآمن والمستقر (v6) ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        const swBlob = new Blob([`
+        navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
           self.addEventListener('install', e => {
             self.skipWaiting();
-            e.waitUntil(caches.open('fh-bw-v4').then(c => c.add(new Request(self.location.href, {cache: 'reload'}))));
+            e.waitUntil(caches.open('fh-v6').then(c => c.add(new Request(self.location.href, {cache: 'reload'}))));
           });
-          self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-          self.addEventListener('fetch', e => {
-            e.respondWith(
-              fetch(e.request)
-                .then(res => {
-                  const resClone = res.clone();
-                  caches.open('fh-bw-v4').then(c => c.put(e.request, resClone));
-                  return res;
-                })
-                .catch(() => caches.match(e.request))
+          self.addEventListener('activate', e => {
+            e.waitUntil(
+              caches.keys().then(keys => Promise.all(keys.map(k => k !== 'fh-v6' ? caches.delete(k) : null)))
+              .then(() => self.clients.claim())
             );
           });
-        `], {type: 'text/javascript'});
-
-        navigator.serviceWorker.register(URL.createObjectURL(swBlob));
+          self.addEventListener('fetch', e => {
+            e.respondWith(
+              fetch(e.request).catch(() => caches.match(e.request))
+            );
+          });
+        `)).catch(err => console.log('SW registration failed:', err));
       });
     }
   </script>
