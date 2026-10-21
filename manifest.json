@@ -1,0 +1,9 @@
+{
+  "name": "FH DECODER",
+  "short_name": "FH",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000"
+}
