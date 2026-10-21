@@ -7,24 +7,25 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#080809">
   <link rel="manifest" href="manifest.json">
   <style>
     :root {
-      --bg-dark: #000000;
-      --card-bg: #0d0d0d;
-      --border-light: rgba(255, 255, 255, 0.15);
-      --text-main: #ffffff;
-      --text-muted: #666666;
+      --bg: #070708;
+      --ink: #ececef;
+      --ink-2: rgba(236, 236, 239, 0.58);
+      --ink-3: rgba(236, 236, 239, 0.34);
+      --glass: linear-gradient(150deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.045) 48%, rgba(255,255,255,0.10) 100%);
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-      background: var(--bg-dark);
-      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: linear-gradient(180deg, #0e0e10 0%, #060607 100%);
+      color: var(--ink);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -33,122 +34,175 @@
       overflow: hidden;
     }
 
-    /* الخلفية لا تستقبل اللمس إطلاقاً */
-    .bg-gradient {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at 50% 40%, #0d0d0d 0%, #000000 80%);
-      z-index: 0;
-      pointer-events: none;
+    .grain {
+      position: fixed; inset: 0; z-index: 5; pointer-events: none; opacity: 0.07; mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     }
 
+    /* ===== زجاج سائل ===== */
+    .glass {
+      position: relative;
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      backdrop-filter: blur(24px) saturate(160%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.42),
+        inset 0 -1px 0 rgba(255,255,255,0.07),
+        inset 0 0 18px rgba(255,255,255,0.05),
+        0 14px 36px rgba(0,0,0,0.5);
+    }
+    .glass::before {
+      content: "";
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(150deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.06) 32%, rgba(255,255,255,0.02) 66%, rgba(255,255,255,0.36) 100%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+
+    /* ===== التخطيط ===== */
     .main-wrapper {
-      width: 85%;
-      max-width: 340px;
+      width: 86%;
+      max-width: 360px;
       text-align: center;
       position: relative;
       z-index: 2;
     }
+    .main-wrapper > :not(.bottom-actions) { animation: rise .8s cubic-bezier(.2,.7,.2,1) both; }
+    .main-wrapper > :nth-child(2) { animation-delay: .08s; }
+    .main-wrapper > :nth-child(3) { animation-delay: .16s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .main-wrapper > * { animation: none !important; } }
 
-    .input-group { position: relative; width: 100%; margin-bottom: 20px; }
+    .input-group {
+      width: 100%;
+      margin-bottom: 14px;
+      border-radius: 999px;
+      transition: box-shadow .3s, transform .3s;
+    }
+    .input-group:focus-within {
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.55),
+        inset 0 -1px 0 rgba(255,255,255,0.10),
+        0 0 0 5px rgba(255,255,255,0.05),
+        0 14px 40px rgba(0,0,0,0.55);
+    }
 
     input {
       display: block;
       width: 100%;
-      padding: 18px 20px;
-      background: var(--card-bg);
-      border: 1px solid var(--border-light);
-      border-radius: 18px;
-      color: var(--text-main);
+      padding: 21px 26px;
+      background: transparent;
+      border: none;
+      border-radius: 999px;
+      color: var(--ink);
       font-size: 16px; /* لا تصغّره: أقل من 16 يسبب تكبير تلقائي في الآيفون */
       font-family: inherit;
       outline: none;
       text-align: center;
-      letter-spacing: 1px;
+      letter-spacing: 0.6px;
       -webkit-appearance: none;
       appearance: none;
       -webkit-user-select: text;
       user-select: text;
       touch-action: manipulation;
     }
-    input:focus {
-      border-color: rgba(255, 255, 255, 0.6);
-      background: #141414;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
-    }
+    input::placeholder { color: var(--ink-3); letter-spacing: 4px; }
 
     .action-btn {
       width: 100%;
-      padding: 17px;
-      border-radius: 18px;
+      padding: 19px;
+      border-radius: 999px;
       border: none;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 12.5px;
       cursor: pointer;
-      letter-spacing: 2px;
+      letter-spacing: 4px;
       text-transform: uppercase;
       outline: none;
+      font-family: inherit;
     }
-    .convert-btn { background: #ffffff; color: #000000; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
-    .convert-btn:active { transform: scale(0.96); background: #e0e0e0; }
+    .convert-btn {
+      background: linear-gradient(180deg, #fbfbfd 0%, #c4c4cc 100%);
+      color: #09090a;
+      box-shadow: inset 0 1px 0 #fff, inset 0 -3px 8px rgba(0,0,0,0.14), 0 12px 32px rgba(0,0,0,0.5), 0 0 40px rgba(255,255,255,0.07);
+      transition: transform .18s cubic-bezier(.2,.7,.2,1), filter .18s;
+    }
+    .convert-btn:active { transform: scale(0.97); filter: brightness(.92); }
 
     #output {
-      margin-top: 35px;
-      font-size: 28px;
+      margin-top: 54px;
+      min-height: 44px;
+      font-size: 34px;
       font-weight: 200;
-      color: var(--text-main);
-      min-height: 40px;
-      letter-spacing: 2px;
+      letter-spacing: 3px;
       word-break: break-all;
+      background: linear-gradient(180deg, #ffffff 25%, #9d9da4 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
     }
 
     .bottom-actions {
       display: flex;
-      gap: 12px;
-      margin-top: 20px;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 28px;
       opacity: 0;
       transform: translateY(8px);
       pointer-events: none;
-      transition: all 0.3s ease;
+      transition: opacity .35s, transform .35s;
     }
     .bottom-actions.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
     .sub-btn {
-      flex: 1;
-      padding: 14px;
-      border-radius: 14px;
-      border: 1px solid var(--border-light);
-      background: var(--card-bg);
-      color: var(--text-muted);
+      min-width: 112px;
+      padding: 13px 24px;
+      border: none;
+      border-radius: 999px;
+      color: var(--ink-2);
       font-weight: 500;
-      font-size: 11px;
-      cursor: pointer;
-      letter-spacing: 1.5px;
+      font-size: 10.5px;
+      font-family: inherit;
+      letter-spacing: 3px;
       text-transform: uppercase;
+      cursor: pointer;
       outline: none;
+      transition: transform .15s, color .15s, filter .15s;
     }
-    .sub-btn:active { transform: scale(0.96); color: #fff; border-color: rgba(255,255,255,0.4); background: #181818; }
+    .sub-btn:active { transform: scale(0.95); color: #fff; filter: brightness(1.3); }
+
+
+    #output.pop { animation: reveal .65s cubic-bezier(.2,.7,.2,1) both; }
+    @keyframes reveal { from { opacity: 0; filter: blur(10px); transform: translateY(8px); } to { opacity: 1; filter: blur(0); transform: none; } }
+    @media (prefers-reduced-motion: reduce) { #output.pop { animation: none; } }
+
+    .input-group:focus-within { transform: scale(1.012); }
 
     .watermark {
       position: fixed;
-      bottom: 25px;
+      bottom: 26px;
       left: 0;
       width: 100%;
       text-align: center;
-      font-size: 9px;
-      color: rgba(255, 255, 255, 0.2);
+      font-size: 9.5px;
+      color: var(--ink-3);
       text-decoration: none;
-      letter-spacing: 2px;
-      z-index: 1;
+      letter-spacing: 4px;
+      z-index: 2;
     }
   </style>
 </head>
 <body>
-
-  <div class="bg-gradient"></div>
+  <div class="grain"></div>
 
   <div class="main-wrapper">
-    <div class="input-group">
+    <div class="input-group glass">
       <input id="input" type="text" inputmode="text" enterkeyhint="go"
              placeholder="WIFI NAME" autocomplete="off" autocorrect="off"
              autocapitalize="off" spellcheck="false">
@@ -159,8 +213,8 @@
     <div id="output"></div>
 
     <div id="bottomActions" class="bottom-actions">
-      <button class="sub-btn" id="clearBtn" type="button">CLEAR</button>
-      <button class="sub-btn" id="copyBtn" type="button">COPY</button>
+      <button class="sub-btn glass" id="clearBtn" type="button">CLEAR</button>
+      <button class="sub-btn glass" id="copyBtn" type="button">COPY</button>
     </div>
   </div>
 
@@ -195,6 +249,7 @@
       for (const ch of remaining) result += (map[ch] !== undefined ? map[ch] : ch);
 
       output.textContent = result;
+      output.classList.remove("pop"); void output.offsetWidth; output.classList.add("pop");
       bottomActions.classList.add("visible");
     }
 
@@ -245,6 +300,7 @@
     });
     // اللمس في أي مكان داخل مجموعة الإدخال يفتح الكيبورد
     document.querySelector(".input-group").addEventListener("click", () => inputEl.focus());
+
 
     // الأوفلاين: يحتاج ملف sw.js حقيقي بجانب هذا الملف وعلى HTTPS
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
