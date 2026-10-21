@@ -5,7 +5,10 @@
   <title>FH DECODER</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
   <style>
     :root {
       --bg-dark: #000000;
@@ -14,12 +17,9 @@
       --text-main: #ffffff;
       --text-muted: #666666;
     }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    html, body { height: 100%; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
@@ -29,15 +29,17 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      min-height: 100dvh;
       overflow: hidden;
     }
 
+    /* الخلفية لا تستقبل اللمس إطلاقاً */
     .bg-gradient {
-      position: absolute;
-      width: 100%;
-      height: 100%;
+      position: fixed;
+      inset: 0;
       background: radial-gradient(circle at 50% 40%, #0d0d0d 0%, #000000 80%);
-      z-index: -1;
+      z-index: 0;
+      pointer-events: none;
     }
 
     .main-wrapper {
@@ -45,30 +47,30 @@
       max-width: 340px;
       text-align: center;
       position: relative;
+      z-index: 2;
     }
 
-    .input-group {
-      position: relative;
-      width: 100%;
-      margin-bottom: 20px;
-    }
+    .input-group { position: relative; width: 100%; margin-bottom: 20px; }
 
-    /* حقل إدخال حر ومباشر بدون أي قيود تمنع ظهور الكيبورد */
     input {
+      display: block;
       width: 100%;
       padding: 18px 20px;
       background: var(--card-bg);
       border: 1px solid var(--border-light);
       border-radius: 18px;
       color: var(--text-main);
-      font-size: 16px;
+      font-size: 16px; /* لا تصغّره: أقل من 16 يسبب تكبير تلقائي في الآيفون */
+      font-family: inherit;
       outline: none;
       text-align: center;
       letter-spacing: 1px;
+      -webkit-appearance: none;
+      appearance: none;
       -webkit-user-select: text;
       user-select: text;
+      touch-action: manipulation;
     }
-
     input:focus {
       border-color: rgba(255, 255, 255, 0.6);
       background: #141414;
@@ -87,17 +89,8 @@
       text-transform: uppercase;
       outline: none;
     }
-
-    .convert-btn {
-      background: #ffffff;
-      color: #000000;
-      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-    }
-
-    .convert-btn:active {
-      transform: scale(0.96);
-      background: #e0e0e0;
-    }
+    .convert-btn { background: #ffffff; color: #000000; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
+    .convert-btn:active { transform: scale(0.96); background: #e0e0e0; }
 
     #output {
       margin-top: 35px;
@@ -118,12 +111,7 @@
       pointer-events: none;
       transition: all 0.3s ease;
     }
-
-    .bottom-actions.visible {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
+    .bottom-actions.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
     .sub-btn {
       flex: 1;
@@ -139,13 +127,7 @@
       text-transform: uppercase;
       outline: none;
     }
-
-    .sub-btn:active {
-      transform: scale(0.96);
-      color: #ffffff;
-      border-color: rgba(255, 255, 255, 0.4);
-      background: #181818;
-    }
+    .sub-btn:active { transform: scale(0.96); color: #fff; border-color: rgba(255,255,255,0.4); background: #181818; }
 
     .watermark {
       position: fixed;
@@ -157,7 +139,7 @@
       color: rgba(255, 255, 255, 0.2);
       text-decoration: none;
       letter-spacing: 2px;
-      cursor: default;
+      z-index: 1;
     }
   </style>
 </head>
@@ -167,22 +149,22 @@
 
   <div class="main-wrapper">
     <div class="input-group">
-      <input id="input" type="text" placeholder="WIFI NAME" autocomplete="off" autocapitalize="off" spellcheck="false" oninput="autoConvertIfPasted()">
+      <input id="input" type="text" inputmode="text" enterkeyhint="go"
+             placeholder="WIFI NAME" autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false">
     </div>
-    
-    <button class="action-btn convert-btn" onclick="run()">CONVERT</button>
+
+    <button class="action-btn convert-btn" id="convertBtn" type="button">CONVERT</button>
 
     <div id="output"></div>
-    
+
     <div id="bottomActions" class="bottom-actions">
-      <button class="sub-btn" onclick="clearAll()">CLEAR</button>
-      <button id="copyBtn" class="sub-btn" onclick="copyToClipboard()">COPY</button>
+      <button class="sub-btn" id="clearBtn" type="button">CLEAR</button>
+      <button class="sub-btn" id="copyBtn" type="button">COPY</button>
     </div>
   </div>
 
-  <a href="https://www.instagram.com/alt.yxf" target="_blank" class="watermark">
-    IG: alt.yxf
-  </a>
+  <a href="https://www.instagram.com/alt.yxf" target="_blank" rel="noopener" class="watermark">IG: alt.yxf</a>
 
   <script>
     const map = {
@@ -195,86 +177,79 @@
       "9":"6","8":"7","7":"8","6":"9"
     };
 
-    window.addEventListener('DOMContentLoaded', () => {
-      clearAll();
-    });
+    const inputEl = document.getElementById("input");
+    const output = document.getElementById("output");
+    const bottomActions = document.getElementById("bottomActions");
+    const copyBtn = document.getElementById("copyBtn");
 
     function run() {
-      let inputVal = document.getElementById("input").value.trim().toLowerCase();
-      const output = document.getElementById("output");
-      const bottomActions = document.getElementById("bottomActions");
-
+      const inputVal = inputEl.value.trim().toLowerCase();
       if (inputVal === "") return;
-      if (navigator.vibrate) navigator.vibrate(25);
 
       let result = "";
-      let remainingText = inputVal;
-
+      let remaining = inputVal;
       if (inputVal.startsWith("fh_")) {
         result = "wlan";
-        remainingText = inputVal.substring(3);
+        remaining = inputVal.substring(3);
       }
-
-      for (let ch of remainingText) {
-        result += map[ch] ?? ch;
-      }
+      for (const ch of remaining) result += (map[ch] !== undefined ? map[ch] : ch);
 
       output.textContent = result;
       bottomActions.classList.add("visible");
     }
 
-    function autoConvertIfPasted() {
-      const val = document.getElementById("input").value;
-      if (val.length >= 8 && (val.startsWith("fh_") || val.startsWith("FH_"))) {
-        run();
-      }
+    function clearAll() {
+      inputEl.value = "";
+      output.textContent = "";
+      bottomActions.classList.remove("visible");
     }
 
-    function clearAll() {
-      if (navigator.vibrate) navigator.vibrate(15);
-      const inputEl = document.getElementById("input");
-      inputEl.value = "";
-      document.getElementById("output").textContent = "";
-      document.getElementById("bottomActions").classList.remove("visible");
+    function fallbackCopy(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;font-size:16px;";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+      return ok;
+    }
+
+    function showCopied() {
+      copyBtn.textContent = "COPIED";
+      copyBtn.style.color = "#ffffff";
+      setTimeout(() => { copyBtn.textContent = "COPY"; copyBtn.style.color = ""; }, 1800);
     }
 
     function copyToClipboard() {
-      const text = document.getElementById("output").textContent;
-      const btn = document.getElementById("copyBtn");
-      
+      const text = output.textContent;
       if (!text) return;
-      if (navigator.vibrate) navigator.vibrate(40);
-      
-      navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = "COPIED";
-        btn.style.color = "#ffffff";
-        setTimeout(() => { 
-          btn.textContent = "COPY"; 
-          btn.style.color = "var(--text-muted)";
-        }, 1800);
-      });
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(showCopied).catch(() => { if (fallbackCopy(text)) showCopied(); });
+      } else if (fallbackCopy(text)) {
+        showCopied();
+      }
     }
 
-    // --- نظام الأوفلاين الآمن والمستقر (v6) ---
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
-          self.addEventListener('install', e => {
-            self.skipWaiting();
-            e.waitUntil(caches.open('fh-v6').then(c => c.add(new Request(self.location.href, {cache: 'reload'}))));
-          });
-          self.addEventListener('activate', e => {
-            e.waitUntil(
-              caches.keys().then(keys => Promise.all(keys.map(k => k !== 'fh-v6' ? caches.delete(k) : null)))
-              .then(() => self.clients.claim())
-            );
-          });
-          self.addEventListener('fetch', e => {
-            e.respondWith(
-              fetch(e.request).catch(() => caches.match(e.request))
-            );
-          });
-        `)).catch(err => console.log('SW registration failed:', err));
+    // الأحداث
+    document.getElementById("convertBtn").addEventListener("click", run);
+    document.getElementById("clearBtn").addEventListener("click", clearAll);
+    copyBtn.addEventListener("click", copyToClipboard);
+    inputEl.addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+    inputEl.addEventListener("input", () => {
+      const v = inputEl.value.toLowerCase();
+      if (v.length >= 8 && v.startsWith("fh_")) run();
+    });
+    // اللمس في أي مكان داخل مجموعة الإدخال يفتح الكيبورد
+    document.querySelector(".input-group").addEventListener("click", () => inputEl.focus());
+
+    // الأوفلاين: يحتاج ملف sw.js حقيقي بجانب هذا الملف وعلى HTTPS
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(err => console.log("SW failed:", err));
       });
     }
   </script>
